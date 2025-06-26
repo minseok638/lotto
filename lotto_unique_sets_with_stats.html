@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로또 수동입력 + 랜덤조합 생성기 (중복 세트 방지)</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; padding: 20px; }
+    input { margin-bottom: 10px; width: 300px; padding: 5px; font-size: 16px; }
+    button { padding: 10px 15px; font-size: 16px; }
+    h2, h3 { margin-top: 30px; }
+    ul { columns: 2; -webkit-columns: 2; -moz-columns: 2; list-style: none; padding: 0; }
+    li { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+
+  <h2>로또 수동입력 + 랜덤조합 생성기 (중복 세트 방지)</h2>
+
+  <div>
+    <input type="text" id="input1" placeholder="예: 3 7 15 16 19 43"><br>
+    <input type="text" id="input2" placeholder="예: 7 9 11 21 30 35"><br>
+    <input type="text" id="input3" placeholder="예: 3 4 6 8 32 42"><br>
+    <input type="text" id="input4" placeholder="예: 8 11 14 17 36 39"><br>
+    <input type="text" id="input5" placeholder="예: 1 5 18 20 30 35"><br>
+    <button onclick="generateSets()">조합 생성</button>
+  </div>
+
+  <h3>생성된 번호 조합</h3>
+  <div id="result"></div>
+
+  <hr>
+  <h3>번호별 출현 통계</h3>
+  <div id="stats"></div>
+
+  <script>
+    function generateSets() {
+      const inputs = [
+        document.getElementById('input1').value.trim(),
+        document.getElementById('input2').value.trim(),
+        document.getElementById('input3').value.trim(),
+        document.getElementById('input4').value.trim(),
+        document.getElementById('input5').value.trim()
+      ];
+
+      const manualSets = inputs
+        .filter(val => val.length > 0)
+        .map(val => val.split(/\s+/).map(Number));
+
+      const allSets = manualSets.map(set => set.slice().sort((a,b) => a-b));
+
+      function setToString(set) {
+        return set.join(',');
+      }
+
+      const existing = new Set(allSets.map(setToString));
+
+      while (allSets.length < 10) {
+        let newSet = [];
+        while (newSet.length < 6) {
+          const n = Math.floor(Math.random() * 45) + 1;
+          if (!newSet.includes(n)) newSet.push(n);
+        }
+        newSet.sort((a, b) => a - b);
+        const newStr = setToString(newSet);
+        if (!existing.has(newStr)) {
+          allSets.push(newSet);
+          existing.add(newStr);
+        }
+      }
+
+      // 조합 출력
+      let html = '';
+      allSets.forEach((set, i) => {
+        html += `<div>Set ${i + 1}: ${set.join(' ')}</div>`;
+      });
+      document.getElementById('result').innerHTML = html;
+
+      // 통계 계산 및 출력
+      const stats = {};
+      allSets.flat().forEach(num => {
+        stats[num] = (stats[num] || 0) + 1;
+      });
+
+      let statsHtml = '<ul>';
+      Object.entries(stats)
+        .sort((a, b) => a[0] - b[0])
+        .forEach(([num, count]) => {
+          statsHtml += `<li>${num} : ${count}회</li>`;
+        });
+      statsHtml += '</ul>';
+      document.getElementById('stats').innerHTML = statsHtml;
+    }
+  </script>
+
+</body>
+</html>
